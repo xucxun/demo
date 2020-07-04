@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.blog.dao.bloggerDao">
+
+<resultMap type="blogger" id="bloggerResult">
+	<result property="id" column="id"/>
+	<result property="userName" column="userName"/>
+	<result property="password" column="password"/>
+	<result property="nickName" column="nickName"/>
+	<result property="info" column="info"/>
+	<result property="sign" column="sign"/>
+	<result property="imagePath" column="imagePath"/>
+</resultMap>
+<!-- 通过用户名和密码查询博主 -->
+<select id="getByUserNameAndPassword" parameterType="String" resultMap="bloggerResult">
+	select * from t_blogger where userName=#{userName} and password=#{password}
+</select>
+
+<update id="update" parameterType="blogger">
+	update t_blogger
+	<set>
+		<if test="password!=null and password!=''">
+			password=#{password},
+		</if>
+		<if test="nickName!=null and nickName!=''">
+			nickName=#{nickName},
+		</if>
+		<if test="info!=null and info!=''">
+			info=#{info},
+		</if>
+		<if test="sign!=null and sign!=''">
+			sign=#{sign},
+		</if>
+		
+		<if test="imagePath!=null and imagePath!=''">
+			imagePath=#{imagePath},
+		</if>
+	</set>
+		where id=#{id}
+</update>
+
+<select id="find" resultMap="bloggerResult">
+	select * from t_blogger limit 1
+</select>
+
+</mapper>

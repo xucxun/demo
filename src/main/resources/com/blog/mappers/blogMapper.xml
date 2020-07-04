@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.blog.dao.blogDao">
+
+<resultMap type="blog" id="blogResult">
+	<result property="id" column="id"/>
+	<result property="title" column="title"/>
+	<result property="summary" column="summary"/>
+	<result property="releaseDate" column="releaseDate"/>
+	<result property="viewNum" column="viewNum"/>
+	<result property="replyNum" column="replyNum"/>
+	<result property="content" column="content"/>
+	<association property="blogType" column="typeId" select="com.blog.dao.blogTypeDao.selectById"/>	
+</resultMap>
+
+	<!-- 首页按年月查询博客数量 -->
+	<select id="countList" resultMap="blogResult">
+	 select date_format(releaseDate,'%Y年%m月') as releaseDateStr,count(*) as blogCount from t_blog group by date_format(releaseDate,'%Y年%m月')
+	 order by date_format(releaseDate,'%Y年%m月') desc
+	</select>
+	
+	<!-- 条件查询所有博客 -->
+	<select id="list" parameterType="Map" resultMap="blogResult">
+		select * from t_blog
+		<where>
+			<if test="title!=null and title!='' ">
+				and title like #{title}
+			</if>
+			<if test="typeId!=null and typeId!='' ">
+				and typeId = #{typeId}
+			</if>
+			<if test="releaseDateStr!=null and releaseDateStr!='' ">
+				and date_format(releaseDate,'%Y年%m月')= #{releaseDateStr}
+			</if>
+		</where>
+		order by releaseDate desc
+		<if test="start!=null and size!=null">
+			limit #{start},#{size}
+		</if>
+	</select>
+	<!-- 查询博客数量 -->
+	<select id="getTotal" parameterType="Map" resultType="Long">
+		select count(*) from t_blog
+		<where>
+			<if test="title!=null and title!='' ">
+				and title like #{title}
+			</if>
+			<if test="typeId!=null and typeId!='' ">
+				and typeId = #{typeId}
+			</if>
+			<if test="releaseDateStr!=null and releaseDateStr!='' ">
+				and date_format(releaseDate,'%Y年%m月')= #{releaseDateStr}
+			</if>
+		</where>
+	</select>
+	<!-- 按博客id查询博客 -->
+	<select id="selectById" parameterType="Integer" resultMap="blogResult">
+		select * from t_blog where id=#{id}
+	</select>
+	
+  	<!-- 添加一条博客 -->
+  	<insert id="add" useGeneratedKeys="true" keyProperty="id" parameterType="blog">
+		insert into t_blog values(null,#{title},#{summary},now(),0,0,#{content},#{blogType.id})
+	</insert>
+	
+	<!-- 修改博客 -->
+	<update id="update" parameterType="blog">
+		update t_blog
+		<set>
+			<if test="title!=null and title!=''">
+				title=#{title},
+			</if>
+			<if test="summary!=null and summary!=''">
+				summary=#{summary},
+			</if>
+			<if test="content!=null and content!=''">
+				content=#{content},
+			</if>
+			<if test="blogType.id!=null">
+				typeId=#{blogType.id},
+			</if>
+			<if test="viewNum!=null">
+				viewNum=#{viewNum},
+			</if>
+			<if test="replyNum!=null">
+				replyNum=#{replyNum},
+			</if>		
+		</set>
+		where id=#{id}
+	</update>
+	
+	<!--删除博客 -->
+	<delete id="delete" parameterType="Integer">
+		delete from t_blog where id=#{id}
+	</delete>
+	
+	<!-- 查询带有博客类别的博客-->
+	<select id="getBlogByTypeId" parameterType="Integer" resultType="Integer">
+		select count(*) from t_blog where typeId=#{typeId}
+	</select>
+	<!-- 查询小于id上一篇博客 -->
+	<select id="getLastBlog" parameterType="Integer" resultMap="blogResult">
+		select * from t_blog where id&lt;#{id} order by id desc limit 1
+	</select>
+	<!-- 查询大于id下一篇博客 -->
+	<select id="getNextBlog" parameterType="Integer" resultMap="blogResult">
+		select * from t_blog where id&gt;#{id} order by id limit 1
+	</select>
+</mapper>	
+	
